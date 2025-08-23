@@ -43,10 +43,20 @@ except ImportError:
 # Download required NLTK data if not already present
 if NLTK_AVAILABLE:
     try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        with st.spinner('Downloading language models (first time only)...'):
-            nltk.download('punkt')
+        # Try new tokenizer first (NLTK 3.8.2+)
+        try:
+            nltk.data.find('tokenizers/punkt_tab')
+        except LookupError:
+            # Try old tokenizer (NLTK < 3.8.2)
+            try:
+                nltk.data.find('tokenizers/punkt')
+            except LookupError:
+                # Download both to be safe
+                with st.spinner('Downloading language models (first time only)...'):
+                    try:
+                        nltk.download('punkt_tab')
+                    except:
+                        nltk.download('punkt')
 else:
     # Fallback function for basic sentence splitting
     def sent_tokenize(text):
