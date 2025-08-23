@@ -1,0 +1,7 @@
+sentence-transformers
+pinecone-client
+python-docx
+PyPDF2
+nltk
+streamlit
+pandas
