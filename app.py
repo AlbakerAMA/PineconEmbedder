@@ -19,11 +19,11 @@ except ImportError:
     st.error("python-docx not available. DOCX processing disabled.")
 
 try:
-    import pinecone
+    from pinecone import Pinecone
     PINECONE_AVAILABLE = True
 except ImportError:
     PINECONE_AVAILABLE = False
-    st.error("pinecone-client not available. Vector storage disabled.")
+    st.error("Pinecone not available. Vector storage disabled.")
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -107,7 +107,6 @@ st.sidebar.markdown(f"🗂️ Pinecone: {'✅' if PINECONE_AVAILABLE else '❌'}
 st.sidebar.markdown(f"📚 NLTK: {'✅' if NLTK_AVAILABLE else '⚠️ (basic fallback)'}")
 
 PINECONE_API_KEY = st.text_input('Enter Pinecone API Key', type='password')
-PINECONE_ENV = st.text_input('Enter Pinecone Environment')
 INDEX_NAME = st.text_input('Enter Pinecone Index Name', 'document-embeddings')
 
 uploaded_file = st.file_uploader(f'Upload {" / ".join(available_types).upper()}', type=available_types)
@@ -166,14 +165,19 @@ def embed_and_upload(chunks, doc_id, source_file):
             return False
             
         with st.spinner('Connecting to Pinecone...'):
-            pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+            pc = Pinecone(api_key=PINECONE_API_KEY)
             
             # Check if index exists, create if it doesn't
-            if INDEX_NAME not in pinecone.list_indexes():
+            existing_indexes = [index.name for index in pc.list_indexes()]
+            if INDEX_NAME not in existing_indexes:
                 st.info(f'Creating new index: {INDEX_NAME}')
-                pinecone.create_index(INDEX_NAME, dimension=384)
+                pc.create_index(
+                    name=INDEX_NAME,
+                    dimension=384,
+                    metric='cosine'
+                )
             
-            index = pinecone.Index(INDEX_NAME)
+            index = pc.Index(INDEX_NAME)
 
         # Process chunks with progress bar
         st.info(f'Processing {len(chunks)} chunks...')
@@ -209,8 +213,8 @@ if st.button('Upload and Embed'):
     if not SENTENCE_TRANSFORMERS_AVAILABLE:
         st.error("😱 sentence-transformers is required but not installed. Please run: pip install sentence-transformers")
     elif not PINECONE_AVAILABLE:
-        st.error("😱 pinecone-client is required but not installed. Please run: pip install pinecone-client")
-    elif uploaded_file and doc_id and PINECONE_API_KEY and PINECONE_ENV:
+        st.error("😱 pinecone is required but not installed. Please run: pip install pinecone")
+    elif uploaded_file and doc_id and PINECONE_API_KEY:
         try:
             # Get file type
             file_type = uploaded_file.name.split('.')[-1].lower()
@@ -255,8 +259,6 @@ if st.button('Upload and Embed'):
             missing.append('document ID')
         if not PINECONE_API_KEY:
             missing.append('Pinecone API key')
-        if not PINECONE_ENV:
-            missing.append('Pinecone environment')
         
         st.error(f'Please provide: {", ".join(missing)}')
 
@@ -276,7 +278,7 @@ with st.expander("ℹ️ How to install missing dependencies"):
     pip install sentence-transformers
     
     # For vector storage
-    pip install pinecone-client
+    pip install pinecone
     
     # For better text processing
     pip install nltk
@@ -289,7 +291,7 @@ with st.expander("ℹ️ How to install missing dependencies"):
     """)
 with st.expander("ℹ️ How to use this application"):
     st.markdown("""
-    1. **Enter your Pinecone credentials**: You'll need your API key and environment
+    1. **Enter your Pinecone credentials**: You'll need your API key
     2. **Specify an index name**: This will be created if it doesn't exist
     3. **Upload a document**: Supported formats are PDF, DOCX, and JSON
     4. **Provide a unique document ID**: This helps identify your document in the vector database

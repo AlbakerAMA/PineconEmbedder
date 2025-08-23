@@ -15,7 +15,7 @@ pip install python-docx
 echo.
 echo Installing embedding and vector database libraries...
 pip install sentence-transformers
-pip install pinecone-client
+pip install pinecone
 
 echo.
 echo Installing text processing libraries...

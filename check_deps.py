@@ -7,11 +7,11 @@ except ImportError:
     docx_available = False
 
 try:
-    import pinecone
-    print('✅ pinecone-client is available')
+    from pinecone import Pinecone
+    print('✅ pinecone is available')
     pinecone_available = True
 except ImportError:
-    print('❌ pinecone-client not available')
+    print('❌ pinecone not available')
     pinecone_available = False
 
 try:
