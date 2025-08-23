@@ -43,6 +43,7 @@ except ImportError:
 # Download required NLTK data if not already present
 if NLTK_AVAILABLE:
     try:
+        import nltk
         # Try new tokenizer first (NLTK 3.8.2+)
         try:
             nltk.data.find('tokenizers/punkt_tab')
@@ -51,12 +52,14 @@ if NLTK_AVAILABLE:
             try:
                 nltk.data.find('tokenizers/punkt')
             except LookupError:
-                # Download both to be safe
+                # Download appropriate tokenizer
                 with st.spinner('Downloading language models (first time only)...'):
                     try:
                         nltk.download('punkt_tab')
-                    except:
+                    except Exception:
                         nltk.download('punkt')
+    except Exception as e:
+        st.warning(f'NLTK setup issue: {e}. Using fallback tokenizer.')
 else:
     # Fallback function for basic sentence splitting
     def sent_tokenize(text):
@@ -80,7 +83,12 @@ def load_embedding_model():
     if not SENTENCE_TRANSFORMERS_AVAILABLE:
         st.error("sentence-transformers not available. Cannot load embedding model.")
         return None
-    return SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    try:
+        from sentence_transformers import SentenceTransformer
+        return SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    except Exception as e:
+        st.error(f"Error loading embedding model: {e}")
+        return None
 
 # ---------------- Streamlit UI ----------------
 st.title('Document Embedding Uploader with Progress')
@@ -128,6 +136,7 @@ def extract_text(file_obj, file_type):
     if file_type == 'pdf':
         if not PDF_AVAILABLE:
             raise ValueError('PDF processing not available. Please install PyPDF2.')
+        import PyPDF2
         text = ''
         reader = PyPDF2.PdfReader(file_obj)
         for page in reader.pages:
@@ -136,6 +145,7 @@ def extract_text(file_obj, file_type):
     elif file_type == 'docx':
         if not DOCX_AVAILABLE:
             raise ValueError('DOCX processing not available. Please install python-docx.')
+        from docx import Document
         doc = Document(file_obj)
         return '\n'.join([p.text for p in doc.paragraphs])
     elif file_type == 'json':
@@ -175,6 +185,7 @@ def embed_and_upload(chunks, doc_id, source_file):
             return False
             
         with st.spinner('Connecting to Pinecone...'):
+            from pinecone import Pinecone, ServerlessSpec
             pc = Pinecone(api_key=PINECONE_API_KEY)
             
             # Check if index exists, create if it doesn't
@@ -184,7 +195,11 @@ def embed_and_upload(chunks, doc_id, source_file):
                 pc.create_index(
                     name=INDEX_NAME,
                     dimension=384,
-                    metric='cosine'
+                    metric='cosine',
+                    spec=ServerlessSpec(
+                        cloud='aws',
+                        region='us-east-1'
+                    )
                 )
             
             index = pc.Index(INDEX_NAME)
