@@ -64,7 +64,7 @@ try:
     print("🔄 Testing basic embedding workflow...")
     
     # This is the exact model used in the app
-    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    model = SentenceTransformer('BAAI/bge-base-en-v1.5')
     print("✅ Model loaded successfully")
     
     # Test embedding

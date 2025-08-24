@@ -6,7 +6,7 @@ A Streamlit application that allows users to upload documents (PDF, DOCX, or JSO
 
 - 📄 Support for PDF, DOCX, and JSON file formats
 - 🔗 Integration with Pinecone VectorDB
-- 🤖 Uses sentence-transformers/all-MiniLM-L6-v2 for embeddings
+- 🤖 Uses BAAI/bge-base-en-v1.5 for embeddings
 - 📊 Real-time progress tracking
 - 🎯 Configurable document chunking
 - 💾 Reusable API input fields
@@ -44,8 +44,8 @@ streamlit run app.py
 ## Configuration
 
 - **Chunk Size**: 500 words (configurable in code)
-- **Embedding Model**: sentence-transformers/all-MiniLM-L6-v2
-- **Embedding Dimension**: 384
+- **Embedding Model**: BAAI/bge-base-en-v1.5
+- **Embedding Dimension**: 768
 - **Supported File Types**: PDF, DOCX, JSON
 
 ## File Structure
@@ -61,7 +61,7 @@ PineconEmbedder/
 
 1. **Text Extraction**: The app extracts text from uploaded documents
 2. **Text Chunking**: Documents are split into manageable chunks using NLTK sentence tokenization
-3. **Embedding Generation**: Each chunk is converted to a 384-dimensional vector using sentence-transformers
+3. **Embedding Generation**: Each chunk is converted to a 768-dimensional vector using BAAI/bge-base-en-v1.5
 4. **Vector Storage**: Embeddings are stored in Pinecone with metadata including source file and chunk index
 5. **Progress Tracking**: Real-time progress bar shows upload status
 

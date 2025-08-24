@@ -85,7 +85,7 @@ def load_embedding_model():
         return None
     try:
         from sentence_transformers import SentenceTransformer
-        return SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        return SentenceTransformer('BAAI/bge-base-en-v1.5')
     except Exception as e:
         st.error(f"Error loading embedding model: {e}")
         return None
@@ -194,7 +194,7 @@ def embed_and_upload(chunks, doc_id, source_file):
                 st.info(f'Creating new index: {INDEX_NAME}')
                 pc.create_index(
                     name=INDEX_NAME,
-                    dimension=384,
+                    dimension=768,
                     metric='cosine',
                     spec=ServerlessSpec(
                         cloud='aws',
@@ -322,14 +322,14 @@ with st.expander("ℹ️ How to use this application"):
     4. **Provide a unique document ID**: This helps identify your document in the vector database
     5. **Click 'Upload and Embed'**: The app will process your document and show progress
     
-    **Note**: The app uses the `sentence-transformers/all-MiniLM-L6-v2` model which creates 384-dimensional embeddings.
+    **Note**: The app uses the `BAAI/bge-base-en-v1.5` model which creates 768-dimensional embeddings.
     """)
 
 with st.expander("🔧 Configuration"):
     st.markdown("""
     - **Chunk Size**: Documents are split into chunks of approximately 500 words
-    - **Model**: sentence-transformers/all-MiniLM-L6-v2 (Free, Local)
-    - **Embedding Dimension**: 384
+    - **Model**: BAAI/bge-base-en-v1.5 (Free, Local)
+    - **Embedding Dimension**: 768
     - **Supported Formats**: PDF, DOCX, JSON
     - **API Requirements**: Only Pinecone (embeddings are generated locally)
     """)
@@ -344,5 +344,5 @@ with st.expander("☁️ Deployment Information"):
     - 📊 Free tier supports this application
     
     **Memory usage:** ~300MB for the embedding model
-    **Model:** sentence-transformers/all-MiniLM-L6-v2 (local, no API)
+    **Model:** BAAI/bge-base-en-v1.5 (local, no API)
     """)
